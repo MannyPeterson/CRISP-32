@@ -138,22 +138,29 @@ See `tests/README.md` for example assembly programs.
 
 ## Implementation Status
 
-### VM Core
+### VM Core (✅ COMPLETE)
 - [x] VM structure definition
 - [x] Memory access functions with endianness handling
 - [x] Freestanding string/memory functions
 - [x] Interrupt management infrastructure
-- [ ] Instruction decoder
-- [ ] Instruction execution
-- [ ] MMU/paging support
-- [ ] Privilege level enforcement
+- [x] Instruction fetch, decode, and execute
+- [x] All 80+ opcodes implemented
+- [x] MMU/paging with virtual address translation
+- [x] Privilege level enforcement (kernel/user modes)
+- [x] Full interrupt dispatch system
+- [x] Page fault handling
+- [x] Context save/restore (IRET)
 
-### Assembler
+### Assembler (✅ COMPLETE)
 - [x] Two-pass assembler
 - [x] Full instruction set encoding
 - [x] Label and symbol resolution
 - [x] Branch offset calculation
 - [x] Test programs
+
+### Known Limitations
+- **MULH/MULHU**: Return 0 (C89 lacks 64-bit integer support)
+- **Floating-point**: Not implemented (reserved opcodes 0x80-0x8F)
 
 ## Notes
 
