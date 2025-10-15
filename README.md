@@ -19,28 +19,35 @@ CRISP-32/
 │   ├── c32_vm.h          # VM structure and API
 │   ├── c32_opcodes.h     # Instruction opcode definitions
 │   ├── c32_asm.h         # Assembler API
-│   └── c32_string.h      # Freestanding string/memory functions
+│   ├── c32_string.h      # Freestanding string/memory functions
+│   └── c32_test.h        # Unit testing framework API
 ├── src/                  # Source files
 │   ├── vm/               # VM sources
-│   │   ├── main.c        # VM entry point and test harness
+│   │   ├── main.c        # VM binary loader (command-line runner)
 │   │   └── c32_vm.c      # VM core implementation (freestanding)
 │   ├── asm/              # Assembler sources
 │   │   ├── c32asm.c      # Assembler main program
 │   │   ├── c32_parser.c  # Assembly parser
 │   │   ├── c32_symbols.c # Symbol table management
 │   │   └── c32_encode.c  # Instruction encoding
+│   ├── test/             # Unit test framework
+│   │   ├── test_suite.c  # Test definitions and validations
+│   │   └── test_runner.c # Test execution engine
 │   └── common/           # Shared code
 │       └── c32_string.c  # String/memory functions
+├── test/                 # Unit tests
+│   ├── README.md         # Testing framework documentation
+│   └── unit/             # Unit test programs
+│       ├── test_*.asm    # Assembly test programs
+│       ├── test_*.bin    # Assembled binaries (generated)
+│       └── test_*.h      # Embedded test headers (generated)
 ├── tools/                # Development utilities
 │   └── bin2h.c           # Binary-to-header converter
-├── tests/                # Test assembly programs
-│   ├── *.asm             # Assembly source files
-│   ├── *.bin             # Assembled binaries (generated)
-│   └── *.h               # Embedded test headers (generated)
 ├── build/                # Object files (generated)
 └── bin/                  # Compiled binaries (generated)
     ├── crisp32           # VM executable
     ├── c32asm            # Assembler executable
+    ├── test_suite        # Unit test runner
     └── bin2h             # Binary-to-header converter
 ```
 
@@ -51,6 +58,8 @@ CRISP-32/
 make                  # Build all (VM + assembler)
 make vm               # Build VM only
 make asm              # Build assembler only
+make test             # Build and run unit tests
+make test_build       # Build unit tests only (don't run)
 make debug            # Build with debug symbols
 make release          # Explicit release build
 make clean            # Clean build artifacts
@@ -79,9 +88,9 @@ The project uses strict C89 compliance with different flags for different compon
 - `-ffreestanding` - Freestanding environment
 - `-fno-builtin` - No compiler built-ins
 
-**Test Harness & Assembler** (hosted):
+**VM Runner, Assembler & Test Suite** (hosted):
 - `-std=c89 -pedantic -Wall -Wextra -Werror`
-- Uses standard library for file I/O and testing
+- Uses standard library for file I/O, testing, and user interaction
 
 ## Features
 
@@ -91,6 +100,41 @@ The project uses strict C89 compliance with different flags for different compon
 - **Complete**: Implements all required VM operations
 
 ## Tools
+
+### CRISP-32 Virtual Machine (crisp32)
+Command-line VM that loads and executes CRISP-32 binary programs.
+
+**Usage:**
+```bash
+bin/crisp32 <binary_file> [load_address]
+```
+
+**Example:**
+```bash
+# Assemble a program
+bin/c32asm program.asm program.bin
+
+# Run it in the VM
+bin/crisp32 program.bin
+
+# Load at custom address
+bin/crisp32 program.bin 0x2000
+```
+
+**Output:**
+The VM displays execution statistics and final register state:
+```
+Loaded 32 bytes from 'program.bin' at address 0x00001000
+
+Starting execution at 0x00001000...
+
+Program halted after 4 steps
+
+Register State:
+================
+R0 : 0x00000000  R1 : 0x00000064  R2 : 0x00000032  R3 : 0x00000096
+...
+```
 
 ### C32 Assembler (c32asm)
 A two-pass assembler that converts CRISP-32 assembly language to binary machine code.
@@ -109,15 +153,26 @@ bin/c32asm input.asm output.bin
 
 **Example:**
 ```bash
-bin/c32asm tests/hello.asm tests/hello.bin
-hexdump -C tests/hello.bin
+# Create a simple program
+cat > add.asm << 'EOF'
+ADDI R1, R0, 100
+ADDI R2, R0, 50
+ADD R3, R1, R2
+SYSCALL
+EOF
+
+# Assemble it
+bin/c32asm add.asm add.bin
+
+# Run it
+bin/crisp32 add.bin
 ```
 
 ### Binary-to-Header Converter (bin2h)
-Converts binary files into C header files for embedded testing in the freestanding VM.
+Converts binary files into C header files for embedding in the unit test framework.
 
 **Purpose:**
-Since the VM core is freestanding and cannot use `fopen()`, test programs are embedded as constant arrays. The `bin2h` tool automates this conversion.
+Test programs are embedded as constant arrays in the test suite. The `bin2h` tool automates this conversion.
 
 **Usage:**
 ```bash
@@ -126,15 +181,52 @@ bin/bin2h input.bin output.h
 
 **Build Workflow:**
 ```
-test.asm → (c32asm) → test.bin → (bin2h) → test.h → included in main.c
+test.asm → (c32asm) → test.bin → (bin2h) → test.h → included in test_suite.c
 ```
 
 The Makefile automatically generates test headers from binaries:
 ```bash
-make test_headers    # Generate .h files from .bin files
+make unit_test_headers    # Generate .h files from .bin files
 ```
 
-See `tests/README.md` for example assembly programs.
+## Unit Testing Framework
+
+CRISP-32 includes a comprehensive JUnit-style unit testing framework for validating VM instruction execution.
+
+**Features:**
+- Assembly test programs with expected outcomes
+- Assertion macros for register, memory, and VM state validation
+- Automated test assembly and embedding
+- Pass/fail reporting with detailed error messages
+
+**Quick Start:**
+```bash
+# Run all unit tests
+make test
+
+# View test output
+Running test suite (7 tests)...
+
+[1/7] ADD and ADDI instructions ... PASS
+[2/7] SUB instruction ... PASS
+[3/7] MUL instruction ... PASS
+...
+```
+
+**Test Coverage:**
+- ✅ Arithmetic: ADD, ADDI, SUB, MUL
+- ✅ Logical: AND, OR, XOR
+- ✅ Shifts: SLL, SRL
+- Branch and memory operations (tests written, awaiting implementation)
+
+**Adding New Tests:**
+
+1. Create assembly test program in `test/unit/`
+2. Add validation function in `src/test/test_suite.c`
+3. Register test case in test suite array
+4. Run `make test`
+
+See `test/README.md` for complete documentation.
 
 ## Implementation Status
 
@@ -156,7 +248,15 @@ See `tests/README.md` for example assembly programs.
 - [x] Full instruction set encoding
 - [x] Label and symbol resolution
 - [x] Branch offset calculation
-- [x] Test programs
+- [x] Binary file output
+
+### Unit Testing Framework (✅ COMPLETE)
+- [x] JUnit-style test framework
+- [x] Test runner with pass/fail reporting
+- [x] Assertion macros (register, memory, PC, VM state)
+- [x] Automated test assembly and embedding
+- [x] Example unit tests for all instruction categories
+- [x] Comprehensive test documentation
 
 ### Known Limitations
 - **MULH/MULHU**: Return 0 (C89 lacks 64-bit integer support)
