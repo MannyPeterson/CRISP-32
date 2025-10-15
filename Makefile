@@ -67,10 +67,8 @@ VM_TARGET = $(BIN_DIR)/crisp32
 ASM_TARGET = $(BIN_DIR)/c32asm
 TEST_SUITE_TARGET = $(BIN_DIR)/test_suite
 
-# Test binaries and headers
+# Test directory
 TEST_DIR = tests
-TEST_BINS = $(TEST_DIR)/simple.bin $(TEST_DIR)/hello.bin
-TEST_HEADERS = $(TEST_DIR)/simple.h $(TEST_DIR)/hello.h
 
 # Unit test binaries and headers
 UNIT_TEST_DIR = $(TEST_DIR)/unit
@@ -78,7 +76,7 @@ UNIT_TEST_ASMS = $(wildcard $(UNIT_TEST_DIR)/*.asm)
 UNIT_TEST_BINS = $(UNIT_TEST_ASMS:.asm=.bin)
 UNIT_TEST_HEADERS = $(UNIT_TEST_ASMS:.asm=.h)
 
-.PHONY: all clean directories debug release vm asm tools test_headers test unit_test_headers test_build
+.PHONY: all clean directories debug release vm asm tools test unit_test_headers test_build
 
 all: directories tools $(VM_TARGET) $(ASM_TARGET)
 
@@ -113,8 +111,8 @@ directories:
 $(VM_TARGET): $(VM_OBJS)
 	$(CC) $(VM_TEST_CFLAGS) -o $@ $^
 
-# main.o uses hosted (can use stdio for testing)
-$(BUILD_DIR)/main.o: $(VM_SRC)/main.c $(TEST_HEADERS)
+# main.o uses hosted (can use stdio for VM runner)
+$(BUILD_DIR)/main.o: $(VM_SRC)/main.c
 	$(CC) $(VM_TEST_CFLAGS) -c -o $@ $<
 
 # Core VM is freestanding
@@ -151,16 +149,6 @@ $(BUILD_DIR)/c32_vm_asm.o: $(VM_SRC)/c32_vm.c
 $(BIN2H_TARGET): $(TOOLS_DIR)/bin2h.c
 	$(CC) $(ASM_CFLAGS) -o $@ $<
 
-# Test header generation
-test_headers: $(TEST_HEADERS)
-
-$(TEST_DIR)/%.h: $(TEST_DIR)/%.bin $(BIN2H_TARGET)
-	$(BIN2H_TARGET) $< $@
-
-# Assemble test programs
-$(TEST_DIR)/%.bin: $(TEST_DIR)/%.asm $(ASM_TARGET)
-	$(ASM_TARGET) $< $@
-
 # Unit test binary and header generation
 $(UNIT_TEST_DIR)/%.bin: $(UNIT_TEST_DIR)/%.asm $(ASM_TARGET)
 	$(ASM_TARGET) $< $@
@@ -187,5 +175,4 @@ $(BUILD_DIR)/c32_string_test.o: $(COMMON_SRC)/c32_string.c
 
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
-	rm -f $(TEST_DIR)/*.bin $(TEST_DIR)/*.h
 	rm -f $(UNIT_TEST_DIR)/*.bin $(UNIT_TEST_DIR)/*.h
