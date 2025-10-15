@@ -23,13 +23,13 @@
 #include "c32_vm.h"
 
 /* Include generated test program headers */
-#include "../../tests/unit/test_add.h"
-#include "../../tests/unit/test_sub.h"
-#include "../../tests/unit/test_mul.h"
-#include "../../tests/unit/test_logical.h"
-#include "../../tests/unit/test_shift.h"
-#include "../../tests/unit/test_branch.h"
-#include "../../tests/unit/test_load_store.h"
+#include "../../test/unit/test_add.h"
+#include "../../test/unit/test_sub.h"
+#include "../../test/unit/test_mul.h"
+#include "../../test/unit/test_logical.h"
+#include "../../test/unit/test_shift.h"
+#include "../../test/unit/test_branch.h"
+#include "../../test/unit/test_load_store.h"
 
 /**
  * @brief Test validation function for ADD instruction

@@ -68,7 +68,7 @@ ASM_TARGET = $(BIN_DIR)/c32asm
 TEST_SUITE_TARGET = $(BIN_DIR)/test_suite
 
 # Test directory
-TEST_DIR = tests
+TEST_DIR = test
 
 # Unit test binaries and headers
 UNIT_TEST_DIR = $(TEST_DIR)/unit
