@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/src"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c89",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerArgs": [
+                "-std=c89",
+                "-pedantic",
+                "-Wall",
+                "-Wextra",
+                "-ffreestanding",
+                "-nostdlib",
+                "-fno-builtin"
+            ]
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,43 @@
+# Build artifacts
+build/
+bin/
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+
+# Executables
+crisp32
+*.exe
+*.out
+
+# Dependency files
+*.d
+
+# Editor files
+*.swp
+*.swo
+*~
+.idea/
+*.sublime-*
+
+# Note: .vscode/ is included for project-specific build/debug configs
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Assembly output
+*.s
+*.asm
+
+# Core dumps
+core
+vgcore.*
