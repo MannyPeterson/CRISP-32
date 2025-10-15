@@ -1,17 +1,49 @@
-/*
- * CRISP-32 Virtual Machine
- * Main implementation
+/**
+ * @file c32_vm.c
+ * @brief CRISP-32 Virtual Machine Core Implementation
+ * @author Manny Peterson <manny@manny.ca>
+ * @date 2025
+ * @copyright Copyright (C) 2025 Manny Peterson
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "c32_vm.h"
 #include "c32_opcodes.h"
 #include "c32_string.h"
 
+/**
+ * @defgroup vm_endian Endianness Conversion
+ * @brief Little-endian conversion for big-endian hosts
+ *
+ * CRISP-32 uses little-endian encoding for all multi-byte values.
+ * These functions provide automatic byte-swapping on big-endian hosts.
+ * @{
+ */
+
 /* Endianness detection and conversion */
 #ifdef C32_HOST_BIG_ENDIAN
 #define NEED_ENDIAN_SWAP 1
 
-/* Byte swap helpers - only needed on big-endian hosts */
+/**
+ * @brief Swap bytes in 32-bit value
+ *
+ * Converts between little-endian and big-endian representation.
+ *
+ * @param val Value to swap
+ * @return Byte-swapped value
+ */
 static uint32_t swap32(uint32_t val) {
     return ((val & 0xFF000000) >> 24) |
            ((val & 0x00FF0000) >> 8) |
@@ -19,6 +51,14 @@ static uint32_t swap32(uint32_t val) {
            ((val & 0x000000FF) << 24);
 }
 
+/**
+ * @brief Swap bytes in 16-bit value
+ *
+ * Converts between little-endian and big-endian representation.
+ *
+ * @param val Value to swap
+ * @return Byte-swapped value
+ */
 static uint16_t swap16(uint16_t val) {
     return ((val & 0xFF00) >> 8) |
            ((val & 0x00FF) << 8);
@@ -28,7 +68,22 @@ static uint16_t swap16(uint16_t val) {
 #define NEED_ENDIAN_SWAP 0
 #endif
 
-/* Memory access functions with endianness handling */
+/** @} */ /* end of vm_endian */
+
+/**
+ * @addtogroup vm_memory
+ * @{
+ */
+
+/**
+ * @brief Read 32-bit word from memory
+ *
+ * Reads 4 bytes in little-endian order and converts to host byte order.
+ * Automatically handles endianness conversion on big-endian hosts.
+ *
+ * @param addr Pointer to memory location
+ * @return 32-bit value in host byte order
+ */
 uint32_t c32_read_word(const uint8_t *addr) {
     uint32_t val;
     c32_memcpy(&val, addr, 4);
@@ -39,6 +94,15 @@ uint32_t c32_read_word(const uint8_t *addr) {
 #endif
 }
 
+/**
+ * @brief Read 16-bit halfword from memory
+ *
+ * Reads 2 bytes in little-endian order and converts to host byte order.
+ * Automatically handles endianness conversion on big-endian hosts.
+ *
+ * @param addr Pointer to memory location
+ * @return 16-bit value in host byte order
+ */
 uint16_t c32_read_half(const uint8_t *addr) {
     uint16_t val;
     c32_memcpy(&val, addr, 2);
@@ -49,10 +113,27 @@ uint16_t c32_read_half(const uint8_t *addr) {
 #endif
 }
 
+/**
+ * @brief Read 8-bit byte from memory
+ *
+ * Reads a single byte directly (no endianness conversion needed).
+ *
+ * @param addr Pointer to memory location
+ * @return 8-bit value
+ */
 uint8_t c32_read_byte(const uint8_t *addr) {
     return *addr;
 }
 
+/**
+ * @brief Write 32-bit word to memory
+ *
+ * Converts value to little-endian order and writes 4 bytes.
+ * Automatically handles endianness conversion on big-endian hosts.
+ *
+ * @param addr Pointer to memory location
+ * @param value 32-bit value in host byte order
+ */
 void c32_write_word(uint8_t *addr, uint32_t value) {
 #if NEED_ENDIAN_SWAP
     uint32_t val = swap32(value);
@@ -62,6 +143,15 @@ void c32_write_word(uint8_t *addr, uint32_t value) {
 #endif
 }
 
+/**
+ * @brief Write 16-bit halfword to memory
+ *
+ * Converts value to little-endian order and writes 2 bytes.
+ * Automatically handles endianness conversion on big-endian hosts.
+ *
+ * @param addr Pointer to memory location
+ * @param value 16-bit value in host byte order
+ */
 void c32_write_half(uint8_t *addr, uint16_t value) {
 #if NEED_ENDIAN_SWAP
     uint16_t val = swap16(value);
@@ -71,15 +161,40 @@ void c32_write_half(uint8_t *addr, uint16_t value) {
 #endif
 }
 
+/**
+ * @brief Write 8-bit byte to memory
+ *
+ * Writes a single byte directly (no endianness conversion needed).
+ *
+ * @param addr Pointer to memory location
+ * @param value 8-bit value
+ */
 void c32_write_byte(uint8_t *addr, uint8_t value) {
     *addr = value;
 }
 
-/* VM initialization */
+/** @} */ /* end of vm_memory */
+
+/**
+ * @addtogroup vm_lifecycle
+ * @{
+ */
+
+/**
+ * @brief Initialize virtual machine
+ *
+ * Sets up the VM with guest memory and resets all state to initial values.
+ * Clears all registers, sets PC to 0, enters kernel mode with paging disabled,
+ * and clears interrupt state. Must be called before using the VM.
+ *
+ * @param vm Pointer to VM structure
+ * @param memory Pointer to guest physical memory buffer
+ * @param memory_size Size of guest memory in bytes
+ */
 void c32_vm_init(c32_vm_t *vm, uint8_t *memory, uint32_t memory_size) {
     size_t i;
 
-    /* Clear registers */
+    /* Clear all general purpose registers */
     for (i = 0; i < 32; i++) {
         vm->regs[i] = 0;
     }
@@ -104,6 +219,14 @@ void c32_vm_init(c32_vm_t *vm, uint8_t *memory, uint32_t memory_size) {
     vm->interrupts.saved_regs_addr = 0;
 }
 
+/**
+ * @brief Reset virtual machine to initial state
+ *
+ * Clears all registers, sets PC to 0, enters kernel mode, disables paging,
+ * and stops execution. Does not clear interrupt state or modify memory.
+ *
+ * @param vm Pointer to VM structure
+ */
 void c32_vm_reset(c32_vm_t *vm) {
     size_t i;
 
@@ -117,7 +240,23 @@ void c32_vm_reset(c32_vm_t *vm) {
     vm->paging_enabled = 0;
 }
 
-/* Interrupt management */
+/** @} */ /* end of vm_lifecycle */
+
+/**
+ * @addtogroup vm_interrupts
+ * @{
+ */
+
+/**
+ * @brief Raise software interrupt
+ *
+ * Sets the pending bit for the specified interrupt number in the interrupt
+ * pending bitmap. The interrupt will be dispatched before the next instruction
+ * if interrupts are globally enabled.
+ *
+ * @param vm Pointer to VM structure
+ * @param int_num Interrupt number (0-255)
+ */
 void c32_raise_interrupt(c32_vm_t *vm, uint8_t int_num) {
     uint8_t byte_idx = int_num / 8;
     uint8_t bit_idx = int_num % 8;
@@ -127,6 +266,17 @@ void c32_raise_interrupt(c32_vm_t *vm, uint8_t int_num) {
     }
 }
 
+/**
+ * @brief Set interrupt handler address
+ *
+ * Writes the handler address to the Interrupt Vector Table (IVT) in guest
+ * memory. The IVT is located at physical address 0x00000000, with each entry
+ * occupying 8 bytes (handler address at offset int_num * 8).
+ *
+ * @param vm Pointer to VM structure
+ * @param int_num Interrupt number (0-255)
+ * @param handler_addr Physical address of interrupt handler routine
+ */
 void c32_set_interrupt_handler(c32_vm_t *vm, uint8_t int_num, uint32_t handler_addr) {
     uint32_t ivt_offset;
 
@@ -140,7 +290,31 @@ void c32_set_interrupt_handler(c32_vm_t *vm, uint8_t int_num, uint32_t handler_a
     }
 }
 
-/* Helper: Check for pending interrupts and dispatch if needed */
+/** @} */ /* end of vm_interrupts */
+
+/**
+ * @defgroup vm_helpers Internal Helper Functions
+ * @brief Private helper functions for VM implementation
+ * @{
+ */
+
+/**
+ * @brief Check for pending interrupts and dispatch if enabled
+ *
+ * Scans the interrupt pending bitmap for the highest priority pending interrupt.
+ * If interrupts are enabled and a pending interrupt is found, performs the
+ * following dispatch sequence:
+ * 1. Clears the pending bit
+ * 2. Saves current PC to saved_pc
+ * 3. Switches to kernel mode
+ * 4. Saves all registers (R0-R31) to stack
+ * 5. Disables interrupts
+ * 6. Loads interrupt number into R4
+ * 7. Reads handler address from IVT and jumps to it
+ *
+ * @param vm Pointer to VM structure
+ * @return 1 if interrupt dispatched, 0 if no interrupts pending, -1 on error
+ */
 static int check_interrupts(c32_vm_t *vm) {
     uint8_t int_num;
     uint8_t byte_idx, bit_idx;
@@ -206,7 +380,34 @@ static int check_interrupts(c32_vm_t *vm) {
     return 0; /* No interrupts pending */
 }
 
-/* Helper: Translate virtual address to physical (with paging) */
+/**
+ * @brief Translate virtual address to physical address
+ *
+ * Performs virtual to physical address translation using the page table.
+ * Kernel mode bypasses translation. User mode requires valid page table entries
+ * with appropriate permissions.
+ *
+ * Page Table Entry (PTE) format (32 bits):
+ * - Bits [31:12]: Physical page number
+ * - Bit 3: U (User accessible)
+ * - Bit 2: X (Executable)
+ * - Bit 1: W (Writable)
+ * - Bit 0: V (Valid)
+ *
+ * Raises interrupt 8 (page fault) on:
+ * - Invalid page number
+ * - Invalid page table address
+ * - Valid bit not set
+ * - User bit not set in user mode
+ * - Write to non-writable page
+ * - Execute from non-executable page
+ *
+ * @param vm Pointer to VM structure
+ * @param vaddr Virtual address to translate
+ * @param is_write 1 if this is a write access, 0 for read
+ * @param is_exec 1 if this is an instruction fetch, 0 for data access
+ * @return Physical address, or 0xFFFFFFFF on page fault
+ */
 static uint32_t translate_address(c32_vm_t *vm, uint32_t vaddr, int is_write, int is_exec) {
     uint32_t page_num, page_offset, pte_addr, pte, phys_page, phys_addr;
     uint8_t valid, user, writable, executable;
@@ -281,7 +482,47 @@ static uint32_t translate_address(c32_vm_t *vm, uint32_t vaddr, int is_write, in
     return phys_addr;
 }
 
-/* VM execution - single instruction step */
+/** @} */ /* end of vm_helpers */
+
+/**
+ * @addtogroup vm_lifecycle
+ * @{
+ */
+
+/**
+ * @brief Execute single instruction
+ *
+ * Performs one complete instruction cycle:
+ * 1. Checks for pending interrupts and dispatches if enabled
+ * 2. Validates PC alignment (8-byte boundary)
+ * 3. Translates virtual PC to physical address
+ * 4. Fetches 8-byte instruction from memory
+ * 5. Decodes instruction fields (opcode, rs, rt, rd, imm)
+ * 6. Advances PC by 8 bytes
+ * 7. Executes instruction based on opcode
+ * 8. Enforces R0 = 0
+ *
+ * Instruction encoding (8 bytes, little-endian):
+ * - Byte 0: opcode
+ * - Byte 1: rs (source register 1)
+ * - Byte 2: rt (source register 2 or target for immediates)
+ * - Byte 3: rd (destination register)
+ * - Bytes 4-7: imm (32-bit immediate value)
+ *
+ * Supported instruction categories:
+ * - Arithmetic (ADD, SUB, MUL, DIV, etc.)
+ * - Logical (AND, OR, XOR, NOR, shifts)
+ * - Comparison (SLT, SLTU)
+ * - Memory (LW, LH, LB, SW, SH, SB with variants)
+ * - Branches (BEQ, BNE, BLEZ, BGTZ, BLTZ, BGEZ)
+ * - Jumps (J, JAL, JR, JALR)
+ * - System (SYSCALL, BREAK)
+ * - Interrupts (EI, DI, IRET, RAISE, GETPC)
+ * - Privilege/MMU (ENABLE_PAGING, DISABLE_PAGING, SET_PTBR, ENTER_USER, GETMODE)
+ *
+ * @param vm Pointer to VM structure
+ * @return 0 on success, -1 on error (halts execution)
+ */
 int c32_vm_step(c32_vm_t *vm) {
     uint8_t opcode, rs, rt, rd;
     uint32_t imm;
@@ -327,7 +568,7 @@ int c32_vm_step(c32_vm_t *vm) {
 
     /* Decode and execute instruction */
     switch (opcode) {
-        /* NOP */
+        /* NOP - No Operation */
         case OP_NOP:
             break;
 
@@ -681,6 +922,18 @@ int c32_vm_step(c32_vm_t *vm) {
     return 0;
 }
 
+/**
+ * @brief Run VM until halted
+ *
+ * Executes instructions in a continuous loop by repeatedly calling
+ * c32_vm_step() until the VM halts (running flag becomes 0).
+ * The VM can be halted by:
+ * - SYSCALL or BREAK instructions
+ * - Fatal errors (invalid PC, page faults without handlers)
+ * - Illegal opcodes
+ *
+ * @param vm Pointer to VM structure
+ */
 void c32_vm_run(c32_vm_t *vm) {
     vm->running = 1;
 
@@ -690,3 +943,5 @@ void c32_vm_run(c32_vm_t *vm) {
         }
     }
 }
+
+/** @} */ /* end of vm_lifecycle */
