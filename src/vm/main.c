@@ -49,14 +49,32 @@ static void load_program(c32_vm_t *vm, const uint8_t *program, uint32_t size, ui
 static int run_tests(void) {
     c32_vm_t vm;
     uint32_t i;
+    int steps;
 
-    /* Test 1: Load simple program */
+    /* Test 1: Load and execute simple program */
     c32_vm_init(&vm, test_memory, sizeof(test_memory));
     load_program(&vm, test_simple, test_simple_size, 0x1000);
 
     /* Verify first instruction loaded correctly */
     if (vm.memory[0x1000] != 0x05) {
         return -1;  /* Failed */
+    }
+
+    /* Set PC to start of program and run */
+    vm.pc = 0x1000;
+    vm.running = 1;
+
+    /* Execute instructions (max 100 steps to prevent infinite loops) */
+    for (steps = 0; steps < 100 && vm.running; steps++) {
+        if (c32_vm_step(&vm) != 0) {
+            break;
+        }
+    }
+
+    /* Simple program should: ADDI R1, R0, 42; ADDI R2, R0, 10; ADD R3, R1, R2 */
+    /* Result: R1 = 42, R2 = 10, R3 = 52 */
+    if (vm.regs[1] != 42 || vm.regs[2] != 10 || vm.regs[3] != 52) {
+        return -1;  /* Test failed */
     }
 
     /* Test 2: Load hello program */
