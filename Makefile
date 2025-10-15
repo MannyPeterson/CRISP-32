@@ -29,6 +29,10 @@ endif
 
 # Directories
 SRC_DIR = src
+VM_SRC = $(SRC_DIR)/vm
+ASM_SRC = $(SRC_DIR)/asm
+COMMON_SRC = $(SRC_DIR)/common
+TOOLS_DIR = tools
 INCLUDE_DIR = include
 BUILD_DIR = build
 BIN_DIR = bin
@@ -39,12 +43,12 @@ VM_TEST_CFLAGS += -I$(INCLUDE_DIR)
 ASM_CFLAGS += -I$(INCLUDE_DIR)
 
 # VM source files
-VM_SRCS = $(SRC_DIR)/main.c $(SRC_DIR)/c32_vm.c $(SRC_DIR)/c32_string.c
+VM_SRCS = $(VM_SRC)/main.c $(VM_SRC)/c32_vm.c $(COMMON_SRC)/c32_string.c
 VM_OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/c32_vm.o $(BUILD_DIR)/c32_string.o
 
 # Assembler source files
-ASM_SRCS = $(SRC_DIR)/c32asm.c $(SRC_DIR)/c32_parser.c $(SRC_DIR)/c32_symbols.c \
-           $(SRC_DIR)/c32_encode.c $(SRC_DIR)/c32_string.c $(SRC_DIR)/c32_vm.c
+ASM_SRCS = $(ASM_SRC)/c32asm.c $(ASM_SRC)/c32_parser.c $(ASM_SRC)/c32_symbols.c \
+           $(ASM_SRC)/c32_encode.c $(COMMON_SRC)/c32_string.c $(VM_SRC)/c32_vm.c
 ASM_OBJS = $(BUILD_DIR)/c32asm.o $(BUILD_DIR)/c32_parser.o $(BUILD_DIR)/c32_symbols.o \
            $(BUILD_DIR)/c32_encode.o $(BUILD_DIR)/c32_string_asm.o $(BUILD_DIR)/c32_vm_asm.o
 
@@ -85,41 +89,41 @@ $(VM_TARGET): $(VM_OBJS)
 	$(CC) $(VM_TEST_CFLAGS) -o $@ $^
 
 # main.o uses hosted (can use stdio for testing)
-$(BUILD_DIR)/main.o: $(SRC_DIR)/main.c $(TEST_HEADERS)
+$(BUILD_DIR)/main.o: $(VM_SRC)/main.c $(TEST_HEADERS)
 	$(CC) $(VM_TEST_CFLAGS) -c -o $@ $<
 
 # Core VM is freestanding
-$(BUILD_DIR)/c32_vm.o: $(SRC_DIR)/c32_vm.c
+$(BUILD_DIR)/c32_vm.o: $(VM_SRC)/c32_vm.c
 	$(CC) $(VM_CORE_CFLAGS) -c -o $@ $<
 
-$(BUILD_DIR)/c32_string.o: $(SRC_DIR)/c32_string.c
+$(BUILD_DIR)/c32_string.o: $(COMMON_SRC)/c32_string.c
 	$(CC) $(VM_CORE_CFLAGS) -c -o $@ $<
 
 # Assembler build rules (hosted, uses libc)
 $(ASM_TARGET): $(ASM_OBJS)
 	$(CC) $(ASM_CFLAGS) -o $@ $^
 
-$(BUILD_DIR)/c32asm.o: $(SRC_DIR)/c32asm.c
+$(BUILD_DIR)/c32asm.o: $(ASM_SRC)/c32asm.c
 	$(CC) $(ASM_CFLAGS) -c -o $@ $<
 
-$(BUILD_DIR)/c32_parser.o: $(SRC_DIR)/c32_parser.c
+$(BUILD_DIR)/c32_parser.o: $(ASM_SRC)/c32_parser.c
 	$(CC) $(ASM_CFLAGS) -c -o $@ $<
 
-$(BUILD_DIR)/c32_symbols.o: $(SRC_DIR)/c32_symbols.c
+$(BUILD_DIR)/c32_symbols.o: $(ASM_SRC)/c32_symbols.c
 	$(CC) $(ASM_CFLAGS) -c -o $@ $<
 
-$(BUILD_DIR)/c32_encode.o: $(SRC_DIR)/c32_encode.c
+$(BUILD_DIR)/c32_encode.o: $(ASM_SRC)/c32_encode.c
 	$(CC) $(ASM_CFLAGS) -c -o $@ $<
 
 # Assembler needs its own builds of shared sources (without freestanding flags)
-$(BUILD_DIR)/c32_string_asm.o: $(SRC_DIR)/c32_string.c
+$(BUILD_DIR)/c32_string_asm.o: $(COMMON_SRC)/c32_string.c
 	$(CC) $(ASM_CFLAGS) -c -o $@ $<
 
-$(BUILD_DIR)/c32_vm_asm.o: $(SRC_DIR)/c32_vm.c
+$(BUILD_DIR)/c32_vm_asm.o: $(VM_SRC)/c32_vm.c
 	$(CC) $(ASM_CFLAGS) -c -o $@ $<
 
 # bin2h build rules (hosted)
-$(BIN2H_TARGET): $(SRC_DIR)/bin2h.c
+$(BIN2H_TARGET): $(TOOLS_DIR)/bin2h.c
 	$(CC) $(ASM_CFLAGS) -o $@ $<
 
 # Test header generation
