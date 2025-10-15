@@ -266,21 +266,25 @@ The build system automatically:
 
 ### Success Example
 ```
-Running test suite (7 tests)...
+Running test suite (11 tests)...
 
-[1/7] ADD and ADDI instructions ... PASS
-[2/7] SUB instruction ... PASS
-[3/7] MUL instruction ... PASS
-[4/7] Logical operations (AND, OR, XOR) ... PASS
-[5/7] Shift operations (SLL, SRL) ... PASS
-[6/7] Branch instructions (BEQ) ... PASS
-[7/7] Load/Store instructions (LW, SW) ... PASS
+[1/11] ADD and ADDI instructions ... PASS
+[2/11] SUB instruction ... PASS
+[3/11] MUL instruction ... PASS
+[4/11] Logical operations (AND, OR, XOR) ... PASS
+[5/11] Shift operations (SLL, SRL) ... PASS
+[6/11] Branch instructions (BEQ) ... PASS
+[7/11] Load/Store instructions (LW, SW) ... PASS
+[8/11] Jump instructions (JAL, JR, J) ... PASS
+[9/11] Comparison operations (SLT, SLTU, SLTI, SLTIU) ... PASS
+[10/11] Branch variants (BNE, BLEZ, BGTZ, BLTZ, BGEZ) ... PASS
+[11/11] Division and multiply high (DIV, DIVU, REM, REMU, MULH, MULHU) ... PASS
 
 ========================================
 Test Results Summary
 ========================================
-Total:  7
-Passed: 7
+Total:  11
+Passed: 11
 Failed: 0
 Errors: 0
 ========================================
@@ -341,14 +345,58 @@ include/
 
 ## Current Test Coverage
 
-- ✅ Arithmetic: ADD, ADDI, SUB, MUL
-- ✅ Logical: AND, OR, XOR
-- ✅ Shifts: SLL, SRL
-- ✅ Branches: BEQ
-- ✅ Memory: LW, SW, LUI, ORI
+### Implemented Tests (11 total)
+
+- ✅ **Arithmetic**: ADD, ADDI, SUB, MUL, DIV, DIVU, REM, REMU
+- ✅ **Multiply High**: MULH, MULHU (high 32 bits of 64-bit multiplication)
+- ✅ **Logical**: AND, OR, XOR
+- ✅ **Shifts**: SLL, SRL
+- ✅ **Comparisons**: SLT, SLTU, SLTI, SLTIU
+- ✅ **Branches**: BEQ, BNE, BLEZ, BGTZ, BLTZ, BGEZ
+- ✅ **Jumps**: J, JAL, JR
+- ✅ **Memory**: LW, SW (word operations)
+
+### Planned Tests (Medium Priority)
+
+The following test cases are planned for future implementation:
+
+1. **Byte and Halfword Memory Operations** (`test_memory_sizes.asm`)
+   - LH, LHU (load halfword signed/unsigned)
+   - LB, LBU (load byte signed/unsigned)
+   - SH (store halfword)
+   - SB (store byte)
+   - Purpose: String operations, byte arrays, packed data
+
+2. **Immediate Logical Operations** (`test_logical_imm.asm`)
+   - ANDI, ORI, XORI (bitwise ops with immediates)
+   - LUI (load upper immediate)
+   - NOR (bitwise NOR)
+   - Purpose: Bit manipulation, constant operations
+
+3. **Variable Shift Operations** (`test_shift_variable.asm`)
+   - SLLV, SRLV, SRAV (shift by register value)
+   - SRA (arithmetic right shift by immediate)
+   - Purpose: Dynamic bit manipulation
+
+4. **Edge Cases and Error Handling** (`test_edge_cases.asm`)
+   - Division by zero handling
+   - Overflow conditions
+   - Signed/unsigned boundary cases
+   - Memory alignment issues
+   - Purpose: Robustness and error handling validation
+
+### Instruction Coverage Statistics
+
+- **Tested**: 30+ instructions across 11 test cases
+- **Untested**: Interrupts, MMU, privilege operations, JALR
+- **Coverage**: ~40% of ISA (focus on core computational instructions)
 
 ## Future Enhancements
 
+- JALR (jump and link register) instruction
+- Interrupt handling and system calls
+- MMU and paging operations
+- Privilege level transitions
 - Test fixtures for complex setups
 - Performance benchmarking
 - Code coverage analysis

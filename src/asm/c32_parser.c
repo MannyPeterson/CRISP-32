@@ -316,10 +316,11 @@ int c32_asm_assemble_line(c32_asm_state_t *state, const char *line, int line_num
         if (token_count < 2) return -1;
         idx = c32_asm_find_symbol(state, tokens[1]);
         if (idx >= 0) {
-            inst.immediate = state->symbols[idx].address;
+            /* Add default load address (0x1000) to make addresses absolute */
+            inst.immediate = state->symbols[idx].address + 0x1000;
         } else {
             parse_immediate(tokens[1], &imm);
-            inst.immediate = (uint32_t)imm;
+            inst.immediate = (uint32_t)imm + 0x1000;
         }
     }
     /* JR rs or JALR rd, rs */

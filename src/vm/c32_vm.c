@@ -665,18 +665,43 @@ int c32_vm_step(c32_vm_t *vm) {
             vm->regs[rd] = vm->regs[rs] * vm->regs[rt];
             break;
         case OP_MULH: {
-            int32_t a = (int32_t)vm->regs[rs];
-            int32_t b = (int32_t)vm->regs[rt];
-            /* C89 doesn't have 64-bit, so we can't implement this properly */
-            /* For now, just set to 0 */
-            vm->regs[rd] = 0;
-            (void)a; (void)b;
+            /* 64-bit signed multiplication using 32-bit operations (C89 compatible) */
+            uint32_t a = vm->regs[rs];
+            uint32_t b = vm->regs[rt];
+            uint32_t a_lo = a & 0xFFFF;
+            uint32_t a_hi = a >> 16;
+            uint32_t b_lo = b & 0xFFFF;
+            uint32_t b_hi = b >> 16;
+            uint32_t p0 = a_lo * b_lo;
+            uint32_t p1 = a_lo * b_hi;
+            uint32_t p2 = a_hi * b_lo;
+            uint32_t p3 = a_hi * b_hi;
+            uint32_t mid = p1 + p2 + (p0 >> 16);
+            uint32_t result_hi = p3 + (mid >> 16);
+
+            /* Adjust for signs: if negative, subtract the other operand from high word */
+            if ((int32_t)a < 0) result_hi -= b;
+            if ((int32_t)b < 0) result_hi -= a;
+
+            vm->regs[rd] = result_hi;
             break;
         }
-        case OP_MULHU:
-            /* C89 doesn't have 64-bit, so we can't implement this properly */
-            vm->regs[rd] = 0;
+        case OP_MULHU: {
+            /* 64-bit unsigned multiplication using 32-bit operations (C89 compatible) */
+            uint32_t a = vm->regs[rs];
+            uint32_t b = vm->regs[rt];
+            uint32_t a_lo = a & 0xFFFF;
+            uint32_t a_hi = a >> 16;
+            uint32_t b_lo = b & 0xFFFF;
+            uint32_t b_hi = b >> 16;
+            uint32_t p0 = a_lo * b_lo;
+            uint32_t p1 = a_lo * b_hi;
+            uint32_t p2 = a_hi * b_lo;
+            uint32_t p3 = a_hi * b_hi;
+            uint32_t mid = p1 + p2 + (p0 >> 16);
+            vm->regs[rd] = p3 + (mid >> 16);
             break;
+        }
         case OP_DIV:
             if (vm->regs[rt] != 0) {
                 vm->regs[rd] = (int32_t)vm->regs[rs] / (int32_t)vm->regs[rt];

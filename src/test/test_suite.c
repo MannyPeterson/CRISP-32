@@ -30,6 +30,10 @@
 #include "../../test/unit/test_shift.h"
 #include "../../test/unit/test_branch.h"
 #include "../../test/unit/test_load_store.h"
+#include "../../test/unit/test_jump.h"
+#include "../../test/unit/test_compare.h"
+#include "../../test/unit/test_branch_variants.h"
+#include "../../test/unit/test_div.h"
 
 /**
  * @brief Test validation function for ADD instruction
@@ -111,6 +115,56 @@ static int test_load_store_validation(c32_test_ctx_t *ctx) {
 }
 
 /**
+ * @brief Test validation function for jump instructions
+ */
+static int test_jump_validation(c32_test_ctx_t *ctx) {
+    C32_ASSERT_REG_EQ(ctx, 1, 101);       /* 100 from func + 1 after return */
+    C32_ASSERT_REG_EQ(ctx, 3, 50);        /* Set after J instruction */
+    C32_ASSERT_HALTED(ctx);
+    return C32_TEST_PASS;
+}
+
+/**
+ * @brief Test validation function for comparison operations
+ */
+static int test_compare_validation(c32_test_ctx_t *ctx) {
+    C32_ASSERT_REG_EQ(ctx, 3, 1);         /* 5 < 10 */
+    C32_ASSERT_REG_EQ(ctx, 4, 0);         /* 10 >= 5 */
+    C32_ASSERT_REG_EQ(ctx, 5, 1);         /* 5 < 20 */
+    C32_ASSERT_REG_EQ(ctx, 7, 1);         /* 10 < 0xFFFFFFFF unsigned */
+    C32_ASSERT_REG_EQ(ctx, 8, 1);         /* 5 < 100 unsigned */
+    C32_ASSERT_HALTED(ctx);
+    return C32_TEST_PASS;
+}
+
+/**
+ * @brief Test validation function for branch variants
+ */
+static int test_branch_variants_validation(c32_test_ctx_t *ctx) {
+    C32_ASSERT_REG_EQ(ctx, 3, 1);         /* BNE taken */
+    C32_ASSERT_REG_EQ(ctx, 5, 2);         /* BLEZ taken */
+    C32_ASSERT_REG_EQ(ctx, 7, 3);         /* BGTZ taken */
+    C32_ASSERT_REG_EQ(ctx, 9, 4);         /* BLTZ taken */
+    C32_ASSERT_REG_EQ(ctx, 11, 5);        /* BGEZ taken */
+    C32_ASSERT_HALTED(ctx);
+    return C32_TEST_PASS;
+}
+
+/**
+ * @brief Test validation function for division and multiply high
+ */
+static int test_div_validation(c32_test_ctx_t *ctx) {
+    C32_ASSERT_REG_EQ(ctx, 3, 14);        /* 100 / 7 */
+    C32_ASSERT_REG_EQ(ctx, 4, 2);         /* 100 % 7 */
+    C32_ASSERT_REG_EQ(ctx, 7, 40);        /* 1000 / 25 */
+    C32_ASSERT_REG_EQ(ctx, 8, 0);         /* 1000 % 25 */
+    C32_ASSERT_REG_EQ(ctx, 10, 1);        /* MULH: high bits of 65536*65536 */
+    C32_ASSERT_REG_EQ(ctx, 11, 1);        /* MULHU: high bits of 65536*65536 */
+    C32_ASSERT_HALTED(ctx);
+    return C32_TEST_PASS;
+}
+
+/**
  * @brief Test suite definition
  */
 static const c32_test_case_t test_suite[] = {
@@ -169,6 +223,38 @@ static const c32_test_case_t test_suite[] = {
         0x1000,
         100,
         test_load_store_validation
+    },
+    {
+        "Jump instructions (JAL, JR, J)",
+        test_test_jump,
+        test_test_jump_size,
+        0x1000,
+        100,
+        test_jump_validation
+    },
+    {
+        "Comparison operations (SLT, SLTU, SLTI, SLTIU)",
+        test_test_compare,
+        test_test_compare_size,
+        0x1000,
+        100,
+        test_compare_validation
+    },
+    {
+        "Branch variants (BNE, BLEZ, BGTZ, BLTZ, BGEZ)",
+        test_test_branch_variants,
+        test_test_branch_variants_size,
+        0x1000,
+        100,
+        test_branch_variants_validation
+    },
+    {
+        "Division and multiply high (DIV, DIVU, REM, REMU, MULH, MULHU)",
+        test_test_div,
+        test_test_div_size,
+        0x1000,
+        100,
+        test_div_validation
     }
 };
 
