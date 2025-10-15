@@ -332,6 +332,16 @@ int c32_asm_assemble_line(c32_asm_state_t *state, const char *line, int line_num
         inst.rd = (uint8_t)c32_parse_register(tokens[1]);
         inst.rs = (uint8_t)c32_parse_register(tokens[2]);
     }
+    /* Load/Store: LW rt, rs, offset or SW rt, rs, offset */
+    else if (opcode == OP_LW || opcode == OP_LH || opcode == OP_LHU ||
+             opcode == OP_LB || opcode == OP_LBU ||
+             opcode == OP_SW || opcode == OP_SH || opcode == OP_SB) {
+        if (token_count < 4) return -1;
+        inst.rt = (uint8_t)c32_parse_register(tokens[1]);
+        inst.rs = (uint8_t)c32_parse_register(tokens[2]);
+        parse_immediate(tokens[3], &imm);
+        inst.immediate = (uint32_t)imm;
+    }
     /* No operands: NOP, EI, DI, IRET, SYSCALL, BREAK, etc. */
     else {
         /* Already initialized to zeros */
