@@ -21,18 +21,27 @@ CRISP-32/
 │   ├── c32_asm.h         # Assembler API
 │   └── c32_string.h      # Freestanding string/memory functions
 ├── src/                  # Source files
-│   ├── main.c            # VM entry point
-│   ├── c32_vm.c          # VM implementation
-│   ├── c32_string.c      # String/memory functions
-│   ├── c32asm.c          # Assembler main program
-│   ├── c32_parser.c      # Assembly parser
-│   ├── c32_symbols.c     # Symbol table management
-│   └── c32_encode.c      # Instruction encoding
+│   ├── vm/               # VM sources
+│   │   ├── main.c        # VM entry point and test harness
+│   │   └── c32_vm.c      # VM core implementation (freestanding)
+│   ├── asm/              # Assembler sources
+│   │   ├── c32asm.c      # Assembler main program
+│   │   ├── c32_parser.c  # Assembly parser
+│   │   ├── c32_symbols.c # Symbol table management
+│   │   └── c32_encode.c  # Instruction encoding
+│   └── common/           # Shared code
+│       └── c32_string.c  # String/memory functions
+├── tools/                # Development utilities
+│   └── bin2h.c           # Binary-to-header converter
 ├── tests/                # Test assembly programs
+│   ├── *.asm             # Assembly source files
+│   ├── *.bin             # Assembled binaries (generated)
+│   └── *.h               # Embedded test headers (generated)
 ├── build/                # Object files (generated)
 └── bin/                  # Compiled binaries (generated)
     ├── crisp32           # VM executable
-    └── c32asm            # Assembler executable
+    ├── c32asm            # Assembler executable
+    └── bin2h             # Binary-to-header converter
 ```
 
 ## Build Instructions
@@ -61,13 +70,18 @@ CFLAGS += -DC32_HOST_BIG_ENDIAN
 
 ## Compiler Flags
 
-The project uses strict C89 compliance:
+The project uses strict C89 compliance with different flags for different components:
+
+**VM Core** (freestanding):
 - `-std=c89` - C89 standard
 - `-pedantic` - Strict ISO C compliance
 - `-Wall -Wextra -Werror` - All warnings as errors
 - `-ffreestanding` - Freestanding environment
-- `-nostdlib` - No standard library
 - `-fno-builtin` - No compiler built-ins
+
+**Test Harness & Assembler** (hosted):
+- `-std=c89 -pedantic -Wall -Wextra -Werror`
+- Uses standard library for file I/O and testing
 
 ## Features
 
@@ -97,6 +111,27 @@ bin/c32asm input.asm output.bin
 ```bash
 bin/c32asm tests/hello.asm tests/hello.bin
 hexdump -C tests/hello.bin
+```
+
+### Binary-to-Header Converter (bin2h)
+Converts binary files into C header files for embedded testing in the freestanding VM.
+
+**Purpose:**
+Since the VM core is freestanding and cannot use `fopen()`, test programs are embedded as constant arrays. The `bin2h` tool automates this conversion.
+
+**Usage:**
+```bash
+bin/bin2h input.bin output.h
+```
+
+**Build Workflow:**
+```
+test.asm → (c32asm) → test.bin → (bin2h) → test.h → included in main.c
+```
+
+The Makefile automatically generates test headers from binaries:
+```bash
+make test_headers    # Generate .h files from .bin files
 ```
 
 See `tests/README.md` for example assembly programs.
