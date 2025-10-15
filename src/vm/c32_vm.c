@@ -779,32 +779,32 @@ int c32_vm_step(c32_vm_t *vm) {
         /* Branch Operations */
         case OP_BEQ:
             if (vm->regs[rs] == vm->regs[rt]) {
-                vm->pc = (vm->pc - 8) + imm; /* PC already advanced, so subtract 8 first */
+                vm->pc = vm->pc + imm; /* PC already advanced to next instruction */
             }
             break;
         case OP_BNE:
             if (vm->regs[rs] != vm->regs[rt]) {
-                vm->pc = (vm->pc - 8) + imm;
+                vm->pc = vm->pc + imm;
             }
             break;
         case OP_BLEZ:
             if ((int32_t)vm->regs[rs] <= 0) {
-                vm->pc = (vm->pc - 8) + imm;
+                vm->pc = vm->pc + imm;
             }
             break;
         case OP_BGTZ:
             if ((int32_t)vm->regs[rs] > 0) {
-                vm->pc = (vm->pc - 8) + imm;
+                vm->pc = vm->pc + imm;
             }
             break;
         case OP_BLTZ:
             if ((int32_t)vm->regs[rs] < 0) {
-                vm->pc = (vm->pc - 8) + imm;
+                vm->pc = vm->pc + imm;
             }
             break;
         case OP_BGEZ:
             if ((int32_t)vm->regs[rs] >= 0) {
-                vm->pc = (vm->pc - 8) + imm;
+                vm->pc = vm->pc + imm;
             }
             break;
 
