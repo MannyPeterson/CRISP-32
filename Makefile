@@ -33,7 +33,7 @@ VM_SRC = $(SRC_DIR)/vm
 ASM_SRC = $(SRC_DIR)/asm
 COMMON_SRC = $(SRC_DIR)/common
 TEST_SRC = $(SRC_DIR)/test
-TOOLS_DIR = tools
+TOOLS_DIR = $(SRC_DIR)/tools
 INCLUDE_DIR = include
 BUILD_DIR = build
 BIN_DIR = bin
@@ -68,7 +68,7 @@ ASM_TARGET = $(BIN_DIR)/c32asm
 TEST_SUITE_TARGET = $(BIN_DIR)/test_suite
 
 # Test directory
-TEST_DIR = test
+TEST_DIR = src/test
 
 # Unit test binaries and headers
 UNIT_TEST_DIR = $(TEST_DIR)/unit

@@ -31,18 +31,17 @@ CRISP-32/
 │   │   ├── c32_symbols.c # Symbol table management
 │   │   └── c32_encode.c  # Instruction encoding
 │   ├── test/             # Unit test framework
+│   │   ├── README.md     # Testing framework documentation
 │   │   ├── test_suite.c  # Test definitions and validations
-│   │   └── test_runner.c # Test execution engine
+│   │   ├── test_runner.c # Test execution engine
+│   │   └── unit/         # Unit test programs
+│   │       ├── test_*.asm # Assembly test programs
+│   │       ├── test_*.bin # Assembled binaries (generated)
+│   │       └── test_*.h   # Embedded test headers (generated)
+│   ├── tools/            # Development utilities
+│   │   └── bin2h.c       # Binary-to-header converter
 │   └── common/           # Shared code
 │       └── c32_string.c  # String/memory functions
-├── test/                 # Unit tests
-│   ├── README.md         # Testing framework documentation
-│   └── unit/             # Unit test programs
-│       ├── test_*.asm    # Assembly test programs
-│       ├── test_*.bin    # Assembled binaries (generated)
-│       └── test_*.h      # Embedded test headers (generated)
-├── tools/                # Development utilities
-│   └── bin2h.c           # Binary-to-header converter
 ├── build/                # Object files (generated)
 └── bin/                  # Compiled binaries (generated)
     ├── crisp32           # VM executable
@@ -221,12 +220,12 @@ Running test suite (7 tests)...
 
 **Adding New Tests:**
 
-1. Create assembly test program in `test/unit/`
+1. Create assembly test program in `src/test/unit/`
 2. Add validation function in `src/test/test_suite.c`
 3. Register test case in test suite array
 4. Run `make test`
 
-See `test/README.md` for complete documentation.
+See `src/test/README.md` for complete documentation.
 
 ## Implementation Status
 

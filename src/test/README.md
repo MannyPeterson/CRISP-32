@@ -34,7 +34,7 @@ make clean
 Each test consists of an assembly program (`.asm`):
 
 ```assembly
-# test/unit/test_add.asm
+# src/test/unit/test_add.asm
 # Expected: R1=42, R2=10, R3=52
 
 start:
@@ -212,7 +212,7 @@ The test framework uses an automated build pipeline:
 
 ### Step 1: Write Assembly Test
 
-Create `test/unit/test_name.asm`:
+Create `src/test/unit/test_name.asm`:
 ```assembly
 # Describe what the test validates
 # Expected results: R1=..., R2=...
@@ -226,7 +226,7 @@ start:
 
 In `src/test/test_suite.c`:
 ```c
-#include "../../test/unit/test_name.h"
+#include "unit/test_name.h"
 
 static int test_name_validation(c32_test_ctx_t *ctx) {
     C32_ASSERT_REG_EQ(ctx, 1, expected_value);
@@ -328,16 +328,14 @@ Test cases support the following configuration:
 ## Architecture
 
 ```
-test/
+src/test/
 ├── README.md            # Testing framework documentation
+├── test_runner.c        # Test execution engine
+├── test_suite.c         # Test definitions and validations
 └── unit/
     ├── test_*.asm       # Assembly test programs
     ├── test_*.bin       # Generated binaries (git ignored)
     └── test_*.h         # Generated C headers (git ignored)
-
-src/test/
-├── test_runner.c        # Test execution engine
-└── test_suite.c         # Test definitions and validations
 
 include/
 └── c32_test.h           # Test framework API

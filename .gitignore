@@ -34,9 +34,6 @@ Thumbs.db
 *.idb
 *.pdb
 
-# Assembly output
-*.s
-*.asm
 
 # Core dumps
 core
