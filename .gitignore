@@ -41,3 +41,9 @@ Thumbs.db
 # Core dumps
 core
 vgcore.*
+
+# Generated documentation
+docs/html/
+docs/latex/
+docs/xml/
+docs/man/

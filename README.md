@@ -8,12 +8,16 @@ Freestanding C89 Implementation
 ```
 CRISP-32/
 ├── Makefile              # Build system with strict C89 flags
+├── Doxyfile              # Doxygen configuration for API docs
 ├── crisp32-spec.md       # ISA specification document
 ├── .vscode/              # VSCode configuration
 │   ├── c_cpp_properties.json  # IntelliSense config
 │   ├── tasks.json        # Build tasks
 │   ├── launch.json       # Debug configurations
 │   └── README.md         # VSCode usage guide
+├── docs/                 # Documentation
+│   ├── README.md         # Documentation generation guide
+│   └── html/             # Generated API docs (via doxygen)
 ├── include/              # Public header files
 │   ├── c32_types.h       # Type definitions (no libc)
 │   ├── c32_vm.h          # VM structure and API
@@ -226,6 +230,41 @@ Running test suite (7 tests)...
 4. Run `make test`
 
 See `src/test/README.md` for complete documentation.
+
+## API Documentation
+
+CRISP-32 includes comprehensive Doxygen-based API documentation for all public interfaces.
+
+**Generating Documentation:**
+```bash
+# Install doxygen (if not already installed)
+# Ubuntu/Debian: sudo apt-get install doxygen
+# macOS: brew install doxygen
+
+# Generate HTML documentation
+doxygen
+
+# View documentation
+xdg-open docs/html/index.html  # Linux
+open docs/html/index.html      # macOS
+```
+
+**Documentation Coverage:**
+- Complete API reference for all public headers
+- Detailed function parameter and return value documentation
+- Code examples and usage notes
+- Organized into logical modules (VM Core, Assembler, Testing, etc.)
+- Source code browsing with cross-references
+
+**Key Documentation Modules:**
+- **VM Core** - Virtual machine implementation (`c32_vm.h`)
+- **Assembler** - Two-pass assembler API (`c32_asm.h`)
+- **Types** - Freestanding type definitions (`c32_types.h`)
+- **Opcodes** - All 80+ instruction opcodes (`c32_opcodes.h`)
+- **String/Memory** - Freestanding implementations (`c32_string.h`)
+- **Testing** - Unit test framework API (`c32_test.h`)
+
+See `docs/README.md` for more details on documentation generation and customization.
 
 ## Implementation Status
 
