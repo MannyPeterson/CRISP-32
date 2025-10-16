@@ -134,7 +134,7 @@ INPUT                  = include \
                          src/test \
                          src/asm \
                          README.md \
-                         doc/crisp32-spec.md
+                         docs/crisp32-spec.md
 INPUT_ENCODING         = UTF-8
 INPUT_FILE_ENCODING    =
 FILE_PATTERNS          = *.c \

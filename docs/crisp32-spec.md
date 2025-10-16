@@ -5411,7 +5411,8 @@ make clean
 CRISP-32/
 ├── Makefile              # Build system
 ├── README.md             # Project overview
-├── doc/
+├── docs/
+│   ├── README.md         # Documentation guide
 │   └── crisp32-spec.md   # This document
 ├── include/              # Public headers
 │   ├── c32_types.h
@@ -5463,7 +5464,8 @@ CRISP-32/
 - License: GNU GPL v3
 
 **Documentation:**
-- ISA Specification: `doc/crisp32-spec.md` (this document)
+- ISA Specification: `docs/crisp32-spec.md` (this document)
+- API Documentation: `docs/README.md` (doxygen guide)
 - Test Framework: `src/test/README.md`
 - VSCode Setup: `.vscode/README.md`
 

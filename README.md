@@ -9,7 +9,6 @@ Freestanding C89 Implementation
 CRISP-32/
 ├── Makefile              # Build system with strict C89 flags
 ├── Doxyfile              # Doxygen configuration for API docs
-├── crisp32-spec.md       # ISA specification document
 ├── .vscode/              # VSCode configuration
 │   ├── c_cpp_properties.json  # IntelliSense config
 │   ├── tasks.json        # Build tasks
@@ -17,6 +16,7 @@ CRISP-32/
 │   └── README.md         # VSCode usage guide
 ├── docs/                 # Documentation
 │   ├── README.md         # Documentation generation guide
+│   ├── crisp32-spec.md   # ISA specification document
 │   └── html/             # Generated API docs (via doxygen)
 ├── include/              # Public header files
 │   ├── c32_types.h       # Type definitions (no libc)

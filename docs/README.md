@@ -59,7 +59,7 @@ The Doxyfile is located in the project root and is configured with:
 
 - **Output Format**: HTML (by default)
 - **Input Directories**: `include/`, `src/vm/`, `src/common/`, `src/test/`, `src/asm/`
-- **Special Files**: `README.md`, `doc/crisp32-spec.md`
+- **Special Files**: `README.md`, `docs/crisp32-spec.md`
 - **Optimization**: Configured for C projects
 - **Source Browsing**: Enabled
 - **Search Engine**: Enabled
